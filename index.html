@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en-UK">
+<meta charset="UTF-8">
+
+<!--
+
+Care counter
+Author: Serah Allison, 2025
+Licence: Creative Commons 0 (Public Domain)
+
+Pulse rate counter, respiration rate counter, and fluid flow rate calculator
+Inspired by the Android App DTsEMT DripTimer
+
+Known bugs that need fixing and code that needs tidying
+ * Nil
+
+Other thoughts
+ * Add icons for adding to home screen
+ * Might be nice to add a metronome to target drip rates
+-->
+
+<head>
+<title>Care counter</title>
+<!-- Prevent zoom in/out on Android -->
+<meta name="viewport" content="width=100vw, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+</head>
+</html>
+
+
+<style>
+body {
+  background-color: darkslategray;
+  color: white;
+}
+.flash {
+  background-color: rgba(200, 200, 255, 0.4);
+}
+/* A container to centre everything */
+.everythingContainer {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin-right: -50%;
+  transform: translate(-50%, -50%);
+}
+.centre {
+  margin-left: auto;
+  margin-right: auto;
+}
+button {
+  text-align: center;
+  border-radius: 20px;
+  box-shadow: 7px 6px 28px 1px rgba(0, 0, 0, 0.24);
+}
+button:active {
+  background-color: rgb(255, 200, 200);
+  transform: scale(0.98);
+  box-shadow: 3px 2px 22px 1px rgba(0, 0, 0, 0.24);
+}
+button.count {
+  padding : 0.4em;
+  margin : 3vw;
+  font-size: 2em;
+  width: 90vw;
+  height: 7em;
+}
+button.infusTargetAdjust {
+  font-size: 1em;
+  font-weight: bold;
+}
+button.reset {
+  padding : 0.4em;
+  margin : 3vw;
+  font-size: 1.5em;
+  width: 5em;
+}
+input {
+  margin-top: 0.8em;
+  margin-bottom: 0.7em;
+}
+label {
+  font-size: 1.2em;
+}
+p.rate {
+  font-weight: bold;
+  font-size: 2em;
+}
+</style>
+
+<html>
+<body>
+<div id="container" class="everythingContainer">
+<button type="button" id="counter" class="count" onclick="countButtonPress()">Press to count</button>
+<br />
+<fieldset>
+  <legend></legend>
+  <input type="radio" id="nPerMinute" name="countWhat" value="nPerMinute" onclick="stopDripFlash()" checked="checked" />
+  <label for="nPerMinute">Count pulse or respiration rate</label><br>
+  <input type="radio" id="gtt" name="countWhat" value="gtt" onclick="stopDripFlash()" />
+  <label for="gtt">Count drips in 20gtt fluid set</label><br>
+  <input type="radio" id="showDripRate" name="countWhat" value="showDripRate" onclick="infusTargetAdjust(0)" />
+  <label for="showDripRate">Show drips for <button class="infusTargetAdjust" onclick="infusTargetAdjust(-100)">-</button> <span id="infusTarget"></span> mL/h <button class="infusTargetAdjust" onclick="infusTargetAdjust(100)">+</button></label><br>
+</fieldset>
+<br /><br /><br />
+<p id="elapsedOutput">Output</p>
+<p id="countOutput">Output</p>
+<p id="rateOutput" class="rate">Output</p>
+<button type="button" id="reset" class="reset" onclick="resetCount()">Reset</button>
+</div>
+</body>
+</html>
+
+
+<script type="text/javascript">
+
+function updateDisplay() {
+  document.getElementById("infusTarget").innerHTML = infusTarget;
+  
+  // Display elapsed time to 1 decimal place for first 20 seconds, then no decimals thereafter
+  if (timeSinceStart > 0) {
+    if (timeSinceStart < 20000) {
+      document.getElementById("elapsedOutput").innerHTML = "Elapsed: " + (timeSinceStart / 1000).toFixed(1) + " s";
+    } else {
+      document.getElementById("elapsedOutput").innerHTML = "Elapsed: " + Math.round(timeSinceStart / 1000) + " s";
+    }
+  } else {
+  document.getElementById("elapsedOutput").innerHTML = "Elapsed: n/a";
+  }
+
+  if (count > 0) {
+    document.getElementById("countOutput").innerHTML = "Count: " + count;
+  } else {
+    document.getElementById("countOutput").innerHTML = "Count: n/a";
+  }
+
+  if (count > 1) {
+    if (document.getElementById("nPerMinute").checked) {
+      document.getElementById("rateOutput").innerHTML = "Rate: " + Math.round(60 / ((timeSinceStart / 1000) / (count - 1))) + " /m";
+    } else {
+      document.getElementById("rateOutput").innerHTML = "Infusion: " + Math.round((60 * 60 * count) / (20 * timeSinceStart / 1000)) + " mL/h";
+    }
+  } else {
+    document.getElementById("rateOutput").innerHTML = "...";
+  }
+}
+
+function dripFlash() {
+  document.getElementById("container").classList.add("flash");
+  setTimeout(dripUnflash, 80);
+}
+
+function dripUnflash() {
+  document.getElementById("container").classList.remove("flash");
+}
+
+function stopDripFlash() {
+  if (flashTimer != 0) {
+    clearInterval(flashTimer);
+  }
+  updateDisplay();
+}
+
+function infusTargetAdjust(adjustment) {
+  infusTarget += adjustment;
+  if (infusTarget < 100) {
+    infusTarget = 100;
+  } else if (infusTarget > 1000) {
+    infusTarget = 1000;
+  }
+  document.getElementById("showDripRate").checked = true;
+  interval = (1000 * 60 * 60) / (20 * infusTarget);
+  stopDripFlash();
+  flashTimer = setInterval(dripFlash, interval);
+  resetCount();
+}
+
+function countButtonPress() {
+  if (counting) {
+    count ++;
+    timeSinceStart = Date.now() - countStartTime;
+  } else {
+    counting = true;
+    count = 1;
+    countStartTime = new Date();
+  }
+  updateDisplay();
+}
+
+function resetCount() {
+  counting = false;
+  timeSinceStart = 0;
+  count = 0;
+  updateDisplay();
+}
+
+
+// Global variables
+var counting = false;
+var countStartTime = 0;
+var timeSinceStart = 0;
+var count = 0;
+var infusTarget = 500;
+var flashTimer = 0;
+
+updateDisplay();
+
+</script>
