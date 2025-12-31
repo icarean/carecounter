@@ -5,22 +5,24 @@
 <!--
 
 Care counter
+Version: 1.01 (31 December 2025)
 Author: Serah Allison, 2025
 Licence: Creative Commons 0 (Public Domain)
 
 Pulse rate counter, respiration rate counter, and fluid flow rate calculator
 Inspired by the Android App DTsEMT DripTimer
 
-Known bugs that need fixing and code that needs tidying
+Known bugs that need fixing, or code that needs tidying
  * Nil
 
-Other thoughts
- * Add icons for adding to home screen
- * Might be nice to add a metronome to target drip rates
+Other thoughts/plans
+ * Nil
 -->
 
 <head>
 <title>Care counter</title>
+<!-- Heartbeat icon created by Freepik from flaticon.com/free-icons/heartbeat -->
+<link rel="icon" type="image/x-icon" href="favicon.ico" />
 <!-- Prevent zoom in/out on Android -->
 <meta name="viewport" content="width=100vw, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 </head>
@@ -85,6 +87,10 @@ p.rate {
   font-weight: bold;
   font-size: 2em;
 }
+p.right {
+  font-size: 0.6em;
+  text-align: right;
+}
 </style>
 
 <html>
@@ -93,7 +99,7 @@ p.rate {
 <button type="button" id="counter" class="count" onclick="countButtonPress()">Press to count</button>
 <br />
 <fieldset>
-  <legend></legend>
+  <legend>Action</legend>
   <input type="radio" id="nPerMinute" name="countWhat" value="nPerMinute" onclick="stopDripFlash()" checked="checked" />
   <label for="nPerMinute">Count pulse or respiration rate</label><br>
   <input type="radio" id="gtt" name="countWhat" value="gtt" onclick="stopDripFlash()" />
@@ -106,6 +112,7 @@ p.rate {
 <p id="countOutput">Output</p>
 <p id="rateOutput" class="rate">Output</p>
 <button type="button" id="reset" class="reset" onclick="resetCount()">Reset</button>
+<p class="right">Carecounter v1.01</p>
 </div>
 </body>
 </html>
