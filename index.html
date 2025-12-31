@@ -3,28 +3,21 @@
 <meta charset="UTF-8">
 
 <!--
-
 Care counter
-Version: 1.01 (31 December 2025)
-Author: Serah Allison, 2025
+Version: 1.02 (1 January 2026)
+Author: Serah Allison
 Licence: Creative Commons 0 (Public Domain)
 
 Pulse rate counter, respiration rate counter, and fluid flow rate calculator
 Inspired by the Android App DTsEMT DripTimer
-
-Known bugs that need fixing, or code that needs tidying
- * Nil
-
-Other thoughts/plans
- * Nil
 -->
 
 <head>
-<title>Care counter</title>
-<!-- Heartbeat icon created by Freepik from flaticon.com/free-icons/heartbeat -->
-<link rel="icon" type="image/x-icon" href="favicon.ico" />
-<!-- Prevent zoom in/out on Android -->
-<meta name="viewport" content="width=100vw, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Care counter</title>
+  <!-- Heartbeat icon created by Freepik from flaticon.com/free-icons/heartbeat -->
+  <link rel="icon" type="image/x-icon" href="favicon.ico" />
+  <!-- Prevent zoom in/out on Android -->
+  <meta name="viewport" content="width=100vw, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 </head>
 </html>
 
@@ -34,8 +27,17 @@ body {
   background-color: darkslategray;
   color: white;
 }
+div#warning {
+  text-wrap: wrap;
+}
+.alertIcon {
+  width: 1em;
+  height: 1em;
+  padding-right: 0.5em;
+}
 .flash {
-  background-color: rgba(200, 200, 255, 0.4);
+  background-color: rgba(200, 200, 255, 0.99);
+  transition: background-color 0.05s;
 }
 /* A container to centre everything */
 .everythingContainer {
@@ -76,6 +78,12 @@ button.reset {
   font-size: 1.5em;
   width: 5em;
 }
+button#start {
+  margin: 2em auto;
+  display: block;
+  padding: 0.7em;
+  width: 5em;
+}
 input {
   margin-top: 0.8em;
   margin-bottom: 0.7em;
@@ -86,6 +94,7 @@ label {
 p.rate {
   font-weight: bold;
   font-size: 2em;
+  margin-bottom: 0px;
 }
 p.right {
   font-size: 0.6em;
@@ -96,23 +105,35 @@ p.right {
 <html>
 <body>
 <div id="container" class="everythingContainer">
-<button type="button" id="counter" class="count" onclick="countButtonPress()">Press to count</button>
-<br />
-<fieldset>
-  <legend>Action</legend>
-  <input type="radio" id="nPerMinute" name="countWhat" value="nPerMinute" onclick="stopDripFlash()" checked="checked" />
-  <label for="nPerMinute">Count pulse or respiration rate</label><br>
-  <input type="radio" id="gtt" name="countWhat" value="gtt" onclick="stopDripFlash()" />
-  <label for="gtt">Count drips in 20gtt fluid set</label><br>
-  <input type="radio" id="showDripRate" name="countWhat" value="showDripRate" onclick="infusTargetAdjust(0)" />
-  <label for="showDripRate">Show drips for <button class="infusTargetAdjust" onclick="infusTargetAdjust(-100)">-</button> <span id="infusTarget"></span> mL/h <button class="infusTargetAdjust" onclick="infusTargetAdjust(100)">+</button></label><br>
-</fieldset>
-<br /><br /><br />
-<p id="elapsedOutput">Output</p>
-<p id="countOutput">Output</p>
-<p id="rateOutput" class="rate">Output</p>
-<button type="button" id="reset" class="reset" onclick="resetCount()">Reset</button>
-<p class="right">Carecounter v1.01</p>
+
+<!-- Warning intro text -->
+<div id="warning">
+  <img src="images/256px-Alert_icon-72a7cf.png" class="alertIcon" /><b>Photosensitive epilepsy warning: </b>This webapp features flashing colors (when using the <i>'Show drips'</i> feature).<br /><br />
+  <img src="images/256px-Alert_icon-72a7cf.png" class="alertIcon" /><b>Constraints: </b>Webapps are constrained by browser and OS limitations. If the app doesn't seem to work well, try on a different browser or device.<br /><br />
+  <img src="images/256px-Alert_icon-72a7cf.png" class="alertIcon" /><b>Disclaimer: </b>Carecounter is provided in good faith as an assistive tool. I've tried to make this an accurate and useful tool. However, the author accepts no legal responsibility whatsoever for any results, outcomes, decisions or any other events.<br />
+  <p>This warning will display again in 7 days.</p>
+  <button id="start" onClick="setCookie('warning', 'accepted', 7); startTool();">OK</button>
+</div>
+
+<!-- Counter tool -->
+<div id="tool" hidden>
+  <button type="button" id="counter" class="count" onclick="countButtonPress()">Press to count</button>
+  <br />
+  <fieldset>
+    <legend>Action</legend>
+    <input type="radio" id="nPerMinute" name="countWhat" value="nPerMinute" onclick="stopDripFlash()" checked="checked" />
+    <label for="nPerMinute">Count pulse or respiration rate</label><br>
+    <input type="radio" id="gtt" name="countWhat" value="gtt" onclick="stopDripFlash()" />
+    <label for="gtt">Count drips in 20gtt fluid set</label><br>
+    <input type="radio" id="showDripRate" name="countWhat" value="showDripRate" onclick="infusTargetAdjust(0)" />
+    <label for="showDripRate">Show drips for <button class="infusTargetAdjust" onclick="infusTargetAdjust(-100)">-</button> <span id="infusTarget"></span> mL/h <button class="infusTargetAdjust" onclick="infusTargetAdjust(100)">+</button></label><br>
+  </fieldset>
+   <br />
+  <p id="rateOutput" class="rate">Output</p>
+  <p><span id="countOutput">Output</span><span id="elapsedOutput">Output</span></p>
+  <button type="button" id="reset" class="reset" onclick="resetCount()">Reset</button>
+</div>
+<p class="right">Carecounter v1.02</p>
 </div>
 </body>
 </html>
@@ -120,24 +141,33 @@ p.right {
 
 <script type="text/javascript">
 
+function startTool() {
+  document.getElementById('warning').hidden = true;
+  document.getElementById('tool').hidden = false;
+}
+
 function updateDisplay() {
   document.getElementById("infusTarget").innerHTML = infusTarget;
   
   // Display elapsed time to 1 decimal place for first 20 seconds, then no decimals thereafter
   if (timeSinceStart > 0) {
     if (timeSinceStart < 20000) {
-      document.getElementById("elapsedOutput").innerHTML = "Elapsed: " + (timeSinceStart / 1000).toFixed(1) + " s";
+      document.getElementById("elapsedOutput").innerHTML = " over " + (timeSinceStart / 1000).toFixed(1) + " s)";
     } else {
-      document.getElementById("elapsedOutput").innerHTML = "Elapsed: " + Math.round(timeSinceStart / 1000) + " s";
+      document.getElementById("elapsedOutput").innerHTML = " over " + Math.round(timeSinceStart / 1000) + " s)";
     }
   } else {
-  document.getElementById("elapsedOutput").innerHTML = "Elapsed: n/a";
+    document.getElementById("elapsedOutput").innerHTML = "";
   }
 
   if (count > 0) {
-    document.getElementById("countOutput").innerHTML = "Count: " + count;
+    if (document.getElementById("nPerMinute").checked) {
+      document.getElementById("countOutput").innerHTML = "(" + count + " events";
+    } else {
+      document.getElementById("countOutput").innerHTML = "(" + count + " drips";
+    }
   } else {
-    document.getElementById("countOutput").innerHTML = "Count: n/a";
+    document.getElementById("countOutput").innerHTML = "(no events/drips counted yet)";
   }
 
   if (count > 1) {
@@ -200,6 +230,31 @@ function resetCount() {
   updateDisplay();
 }
 
+// Cookie set and get functions from https://www.w3schools.com/js/js_cookies.asp
+function setCookie(cname, cvalue, exdays) {
+  const d = new Date();
+  d.setTime(d.getTime() + (exdays*24*60*60*1000));
+  let expires = "expires="+ d.toUTCString();
+  document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+}
+
+function getCookie(cname) {
+  let name = cname + "=";
+  let decodedCookie = decodeURIComponent(document.cookie);
+  let ca = decodedCookie.split(';');
+  for(let i = 0; i <ca.length; i++) {
+    let c = ca[i];
+    while (c.charAt(0) == ' ') {
+      c = c.substring(1);
+    }
+    if (c.indexOf(name) == 0) {
+      return c.substring(name.length, c.length);
+    }
+  }
+  return "";
+}
+
+
 
 // Global variables
 var counting = false;
@@ -208,6 +263,10 @@ var timeSinceStart = 0;
 var count = 0;
 var infusTarget = 500;
 var flashTimer = 0;
+
+if (getCookie("warning") === "accepted") {
+  startTool();
+}
 
 updateDisplay();
 
